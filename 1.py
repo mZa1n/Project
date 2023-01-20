@@ -1,15 +1,22 @@
 import pygame
 import os
 import sys
+import pygame_gui
 
+from pygame_gui.elements import UIButton
+# ------------------------------------Бибилиотеки---------------------------------------------------
+
+# --------------------------------Основная часть кода-----------------------------------------------
 pygame.init()
 size = width, height = 600, 700
 screen = pygame.display.set_mode(size)
 FPS = 12
-running = True
+running_2player = False
+running_1player = False
 clock = pygame.time.Clock()
 
 
+# Загрузка изображения
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     if not os.path.isfile(fullname):
@@ -38,37 +45,63 @@ shell_image = pygame.transform.scale(shell_image, (19, 15))
 tile_width = tile_height = 50
 
 
+# Завершение отдельной части кода
 def terminate():
     pygame.quit()
     sys.exit()
 
 
+# Начало игры
 def start_screen():
     pygame.display.set_caption('Стартовое окно')
-    rules = ['ЗАСТАВКА', "", "Правила игры", '...',
-             '...']
+    rules = ['Правила игры', "Стреляй, громи, кроши", "Цель: убить противника",
+             'Кнопка "Start 2 player"',
+             'Отвечает за игру вдвоём',
+             'Кнопка "Start 1 player"',
+             'Отвечает за игру с ботом']
     fon = pygame.transform.scale(load_image('fon.jpg'), (600, 350))
     screen.blit(fon, (0, 300))
     font = pygame.font.Font(None, 30)
     text_coord = 50
+    manager = pygame_gui.UIManager((600, 600))
+    button_layout_rect_start_2player = pygame.Rect(280, 150, 150, 40)
+    button_layout_rect_rules = pygame.Rect(280, 200, 150, 40)
+    button_start_2player = UIButton(relative_rect=button_layout_rect_start_2player,
+                                    text='Start 2 player',
+                                    manager=manager
+                                    )
+    button_start_1player = UIButton(relative_rect=button_layout_rect_rules,
+                                    text='Start 1 player',
+                                    manager=manager
+                                    )
     for line in rules:
         line_rendered = font.render(line, 1, pygame.Color('white'))
         line_rect = line_rendered.get_rect()
-        text_coord += 10
-        line_rect.top = text_coord
+        text_coord += 5
+        line_rect.top = text_coord - 10
         line_rect.x = 10
-        text_coord += line_rect.height
+        text_coord += line_rect.height + 10
         screen.blit(line_rendered, line_rect)
     while True:
+        global running_1player, running_2player
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                return
+            if event.type == pygame_gui.UI_BUTTON_PRESSED:
+                if event.ui_element == button_start_2player:
+                    running_2player = True
+                    return
+                if event.ui_element == button_start_1player:
+                    running_1player = True
+                    return
+            manager.process_events(event)
+        manager.update(FPS)
+        manager.draw_ui(screen)
         pygame.display.flip()
         clock.tick(FPS)
 
 
+# Конец игры
 def outro(text):
     pygame.display.set_caption('Конец игры')
     screen.fill((0, 0, 0))
@@ -96,14 +129,15 @@ def outro(text):
         clock.tick(FPS)
 
 
+# Загрузка уровня
 def load_level(filename):
-    filename = 'data/' + filename
     with open(filename, 'r', encoding='utf-8') as file:
         map_level = list(map(str.strip, file.readlines()))
         max_width = max(map(len, map_level))
         return list(map(lambda x: x.ljust(max_width, '.'), map_level))
 
 
+# Класс плитки
 class Tile(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__(tiles_group, all_sprites)
@@ -114,6 +148,7 @@ class Tile(pygame.sprite.Sprite):
         self.rect = self.rect.move(tile_width * pos_x, tile_height * pos_y)
 
 
+# Класс игрока
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y, direction=1):
         super().__init__(player_group, all_sprites)
@@ -126,6 +161,7 @@ class Player(pygame.sprite.Sprite):
         Shell(self.rect.x, self.rect.y, self.direction, aim)
 
 
+# Класс пули
 class Shell(pygame.sprite.Sprite):
     def __init__(self, x, y, direction, aim):
         super().__init__(shell_group, all_sprites)
@@ -181,6 +217,7 @@ class Shell(pygame.sprite.Sprite):
                 break
 
 
+# Генерация уровней
 def generate_level(level):
     new_player, x, y = None, None, None
     new_player1, x1, y1 = None, None, None
@@ -199,6 +236,7 @@ def generate_level(level):
     return new_player, new_player1
 
 
+# Запуск заставки и описание групп спрайтов
 start_screen()
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
@@ -208,9 +246,83 @@ shell_group = pygame.sprite.Group()
 player = None
 player1 = None
 player1, player = generate_level(load_level('level2.txt'))
-running = True
 pygame.display.set_caption('Танчики')
-while running:
+
+# Игровой цикл для 2 игроков
+while running_2player:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            terminate()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_e:
+                player1.shoot('player')
+            if event.key == pygame.K_RSHIFT:
+                player.shoot('player1')
+    pressed_keys = pygame.key.get_pressed()
+    if pressed_keys[pygame.K_UP]:
+        player.rect.y -= 5
+        if pygame.sprite.spritecollideany(player, box_group):
+            player.rect.y += 5
+        player.direction = 1
+    if pressed_keys[pygame.K_DOWN]:
+        player.rect.y += 5
+        if pygame.sprite.spritecollideany(player, box_group):
+            player.rect.y -= 5
+        player.direction = 3
+    if pressed_keys[pygame.K_LEFT]:
+        player.rect.x -= 5
+        if pygame.sprite.spritecollideany(player, box_group):
+            player.rect.x += 5
+        player.direction = 2
+    if pressed_keys[pygame.K_RIGHT]:
+        player.rect.x += 5
+        if pygame.sprite.spritecollideany(player, box_group):
+            player.rect.x -= 5
+        player.direction = 4
+    if pressed_keys[pygame.K_w]:
+        player1.rect.y -= 5
+        if pygame.sprite.spritecollideany(player1, box_group):
+            player1.rect.y += 5
+        player1.direction = 1
+    if pressed_keys[pygame.K_s]:
+        player1.rect.y += 5
+        if pygame.sprite.spritecollideany(player1, box_group):
+            player1.rect.y -= 5
+        player1.direction = 3
+    if pressed_keys[pygame.K_a]:
+        player1.rect.x -= 5
+        if pygame.sprite.spritecollideany(player1, box_group):
+            player1.rect.x += 5
+        player1.direction = 2
+    if pressed_keys[pygame.K_d]:
+        player1.rect.x += 5
+        if pygame.sprite.spritecollideany(player1, box_group):
+            player1.rect.x -= 5
+        player1.direction = 4
+    player.image = pygame.transform.rotate(player_image, 90 * player.direction)
+    player1.image = pygame.transform.rotate(player_image, 90 * player1.direction)
+    screen.fill((0, 0, 0))
+    tiles_group.draw(screen)
+    player_group.draw(screen)
+    shell_group.draw(screen)
+    clock.tick(FPS)
+    shell_group.update()
+    pygame.display.flip()
+    check_game_over = True
+    if player not in player_group and player1 not in player_group:
+        outro('Ничья')
+        check_game_over = False
+    elif player not in player_group:
+        outro('Победил первый игрок')
+        check_game_over = False
+    elif player1 not in player_group:
+        outro('Победил второй игрок')
+        check_game_over = False
+    if not check_game_over:
+        terminate()
+
+# Игровой цикл для 1 игрока
+while running_1player:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             terminate()
