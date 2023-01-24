@@ -2,21 +2,15 @@ import pygame
 import os
 import sys
 import pygame_gui
+import random
 
 from pygame_gui.elements import UIButton
 # ------------------------------------Бибилиотеки---------------------------------------------------
 
 # --------------------------------Основная часть кода-----------------------------------------------
-pygame.init()
-size = width, height = 600, 700
-screen = pygame.display.set_mode(size)
-FPS = 12
-running_2player = False
-running_1player = False
-clock = pygame.time.Clock()
-
-
 # Загрузка изображения
+
+
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     if not os.path.isfile(fullname):
@@ -31,18 +25,6 @@ def load_image(name, colorkey=None):
             colorkey = image.get_at((0, 0))
         image.set_colorkey(colorkey)
     return image
-
-
-tile_images = {
-    'wall': load_image('box.png'),
-    'empty': load_image('grass.png'),
-}
-player_image = load_image('tank.png')
-player_image = pygame.transform.scale(player_image, (41, 41))
-player_image = pygame.transform.rotate(player_image, 270)
-shell_image = load_image('shell.png', -1)
-shell_image = pygame.transform.scale(shell_image, (19, 15))
-tile_width = tile_height = 50
 
 
 # Завершение отдельной части кода
@@ -103,12 +85,32 @@ def start_screen():
 
 # Конец игры
 def outro(text):
-    pygame.display.set_caption('Конец игры')
     screen.fill((0, 0, 0))
+    for el in all_sprites:
+        el.rect.x = 5000
+        el.kill()
+    for el in player_group:
+        el.rect.x = 5000
+        el.kill()
+    for el in box_group:
+        el.rect.x = 5000
+        el.kill()
+    for el in shell_group:
+        el.rect.x = 5000
+        el.kill()
+    for el in red_bots_group:
+        el.rect.x = 5000
+        el.kill()
+    for el in blue_bots_group:
+        el.rect.x = 5000
+        el.kill()
+    screen_out = pygame.display.set_mode(size)
+    pygame.display.set_caption('Конец игры')
+    screen_out.fill((0, 0, 0))
     rules = ['Конец игры', "", text, '...',
              '...']
     fon = pygame.transform.scale(load_image('fon.jpg'), (600, 350))
-    screen.blit(fon, (0, 300))
+    screen_out.blit(fon, (0, 300))
     font = pygame.font.Font(None, 30)
     text_coord = 50
     for line in rules:
@@ -118,12 +120,14 @@ def outro(text):
         line_rect.top = text_coord
         line_rect.x = 10
         text_coord += line_rect.height
-        screen.blit(line_rendered, line_rect)
+        screen_out.blit(line_rendered, line_rect)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
+            elif event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.KEYDOWN:
+                screen_out.fill((0, 0, 0))
+                start_screen()
                 return
         pygame.display.flip()
         clock.tick(FPS)
@@ -159,6 +163,72 @@ class Player(pygame.sprite.Sprite):
 
     def shoot(self, aim):
         Shell(self.rect.x, self.rect.y, self.direction, aim)
+
+
+class RedBot(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(red_bots_group, all_sprites)
+        self.image = pygame.transform.rotate(bot_r_image, 90 * 2)
+        self.rect = self.image.get_rect()
+        self.rect = self.rect.move(tile_width * pos_x + 5, tile_height * pos_y + 5)
+        self.dir = random.choice([('x', -1, 2), ('x', 1, 4), ('y', -1, 1), ('y', 1, 3)])
+        self.k = 0
+        self.rel = random.randint(25, 41)
+
+    def update(self):
+        self.k += 1
+        for i in range(5):
+            if self.dir[0] == 'x':
+                self.rect.x += self.dir[1]
+                if pygame.sprite.spritecollideany(self, box_group):
+                    self.rect.x -= (self.dir[1] * 7)
+                    self.dir = random.choice([('x', -1, 2), ('x', 1, 4), ('y', -1, 1), ('y', 1, 3)])
+                self.image = pygame.transform.rotate(bot_r_image, 90 * self.dir[2])
+            if self.dir[0] == 'y':
+                self.rect.y += self.dir[1]
+                if pygame.sprite.spritecollideany(self, box_group):
+                    self.rect.y -= (self.dir[1] * 7)
+                    self.dir = random.choice([('x', -1, 2), ('x', 1, 4), ('y', -1, 1), ('y', 1, 3)])
+                self.image = pygame.transform.rotate(bot_r_image, 90 * self.dir[2])
+        if self.k == self.rel:
+            self.k = 0
+            self.shoot()
+
+    def shoot(self):
+        Shell(self.rect.x, self.rect.y, self.dir[2], 'player1')
+
+
+class BlueBot(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(blue_bots_group, all_sprites)
+        self.image = bot_b_image
+        self.rect = self.image.get_rect()
+        self.rect = self.rect.move(tile_width * pos_x + 5, tile_height * pos_y + 5)
+        self.dir = random.choice([('x', -1, 2), ('x', 1, 4), ('y', -1, 1), ('y', 1, 3)])
+        self.k = 0
+        self.rel = random.randint(25, 41)
+
+    def update(self):
+        self.k += 1
+        for i in range(5):
+            if self.dir[0] == 'x':
+                self.rect.x += self.dir[1]
+                if pygame.sprite.spritecollideany(self, box_group):
+                    self.rect.x -= (self.dir[1] * 7)
+                    self.dir = random.choice([('x', -1, 2), ('x', 1, 4), ('y', -1, 1), ('y', 1, 3)])
+                self.image = pygame.transform.rotate(bot_b_image, 90 * self.dir[2])
+            if self.dir[0] == 'y':
+                self.rect.y += self.dir[1]
+                if pygame.sprite.spritecollideany(self, box_group):
+                    self.rect.y -= (self.dir[1] * 7)
+                    self.dir = random.choice([('x', -1, 2), ('x', 1, 4), ('y', -1, 1), ('y', 1, 3)])
+                self.image = pygame.transform.rotate(bot_b_image, 90 * self.dir[2])
+        if self.k == self.rel:
+            self.k = 0
+            self.shoot()
+
+    def shoot(self):
+        Shell(self.rect.x, self.rect.y, self.dir[2], 'player')
 
 
 # Класс пули
@@ -215,6 +285,76 @@ class Shell(pygame.sprite.Sprite):
                 player.rect.y = 5000
                 player.kill()
                 break
+            if self.aim == 'player1' and len(blue_bots_group.sprites()) >= 1 and \
+                    pygame.sprite.collide_mask(self, blue_bots_group.sprites()[0]):
+                screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
+                self.kill()
+                blue_bots_group.sprites()[0].rect.y = 5000
+                blue_bots_group.sprites()[0].kill()
+                break
+            if self.aim == 'player1' and len(blue_bots_group.sprites()) >= 2 and \
+                    pygame.sprite.collide_mask(self, blue_bots_group.sprites()[1]):
+                screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
+                self.kill()
+                blue_bots_group.sprites()[1].rect.y = 5000
+                blue_bots_group.sprites()[1].kill()
+                break
+            if self.aim == 'player1' and len(blue_bots_group.sprites()) >= 3 and \
+                    pygame.sprite.collide_mask(self, blue_bots_group.sprites()[2]):
+                screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
+                self.kill()
+                blue_bots_group.sprites()[2].rect.y = 5000
+                blue_bots_group.sprites()[2].kill()
+                break
+            if self.aim == 'player1' and len(blue_bots_group.sprites()) >= 4 and \
+                    pygame.sprite.collide_mask(self, blue_bots_group.sprites()[3]):
+                screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
+                self.kill()
+                blue_bots_group.sprites()[3].rect.y = 5000
+                blue_bots_group.sprites()[3].kill()
+                break
+            if self.aim == 'player1' and len(blue_bots_group.sprites()) >= 5 and \
+                    pygame.sprite.collide_mask(self, blue_bots_group.sprites()[4]):
+                screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
+                self.kill()
+                blue_bots_group.sprites()[4].rect.y = 5000
+                blue_bots_group.sprites()[4].kill()
+                break
+            if self.aim == 'player' and len(red_bots_group.sprites()) >= 1 and \
+                    pygame.sprite.collide_mask(self, red_bots_group.sprites()[0]):
+                screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
+                self.kill()
+                red_bots_group.sprites()[0].rect.y = 5000
+                red_bots_group.sprites()[0].kill()
+                break
+            if self.aim == 'player' and len(red_bots_group.sprites()) >= 2 and \
+                    pygame.sprite.collide_mask(self, red_bots_group.sprites()[1]):
+                screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
+                self.kill()
+                red_bots_group.sprites()[1].rect.y = 5000
+                red_bots_group.sprites()[1].kill()
+                break
+            if self.aim == 'player' and len(red_bots_group.sprites()) >= 3 and \
+                    pygame.sprite.collide_mask(self, red_bots_group.sprites()[2]):
+                screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
+                self.kill()
+                red_bots_group.sprites()[2].rect.y = 5000
+                red_bots_group.sprites()[2].kill()
+                break
+            if self.aim == 'player' and len(red_bots_group.sprites()) >= 4 and \
+                    pygame.sprite.collide_mask(self, red_bots_group.sprites()[3]):
+                screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
+                self.kill()
+                red_bots_group.sprites()[3].rect.y = 5000
+                red_bots_group.sprites()[3].kill()
+                break
+            if self.aim == 'player' and len(red_bots_group.sprites()) >= 5 and \
+                    pygame.sprite.collide_mask(self, red_bots_group.sprites()[4]):
+                screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
+                self.kill()
+                red_bots_group.sprites()[4].rect.y = 5000
+                red_bots_group.sprites()[4].kill()
+                break
 
 
 # Генерация уровней
@@ -233,163 +373,187 @@ def generate_level(level):
                     new_player1 = Player(x, y)
                 else:
                     new_player = Player(x, y)
+            elif level[y][x] == 'r':
+                Tile('empty', x, y)
+                RedBot(x, y)
+            elif level[y][x] == 'b':
+                Tile('empty', x, y)
+                BlueBot(x, y)
     return new_player, new_player1
 
 
 # Запуск заставки и описание групп спрайтов
-start_screen()
-all_sprites = pygame.sprite.Group()
-tiles_group = pygame.sprite.Group()
-player_group = pygame.sprite.Group()
-box_group = pygame.sprite.Group()
-shell_group = pygame.sprite.Group()
-player = None
-player1 = None
-player1, player = generate_level(load_level('level2.txt'))
-pygame.display.set_caption('Танчики')
+while True:
+    pygame.init()
+    size = width, height = 600, 700
+    screen = pygame.display.set_mode(size)
+    FPS = 12
+    running_2player = False
+    running_1player = False
+    clock = pygame.time.Clock()
 
-# Игровой цикл для 2 игроков
-while running_2player:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            terminate()
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_e:
-                player1.shoot('player')
-            if event.key == pygame.K_RSHIFT:
-                player.shoot('player1')
-    pressed_keys = pygame.key.get_pressed()
-    if pressed_keys[pygame.K_UP]:
-        player.rect.y -= 5
-        if pygame.sprite.spritecollideany(player, box_group):
-            player.rect.y += 5
-        player.direction = 1
-    if pressed_keys[pygame.K_DOWN]:
-        player.rect.y += 5
-        if pygame.sprite.spritecollideany(player, box_group):
-            player.rect.y -= 5
-        player.direction = 3
-    if pressed_keys[pygame.K_LEFT]:
-        player.rect.x -= 5
-        if pygame.sprite.spritecollideany(player, box_group):
-            player.rect.x += 5
-        player.direction = 2
-    if pressed_keys[pygame.K_RIGHT]:
-        player.rect.x += 5
-        if pygame.sprite.spritecollideany(player, box_group):
-            player.rect.x -= 5
-        player.direction = 4
-    if pressed_keys[pygame.K_w]:
-        player1.rect.y -= 5
-        if pygame.sprite.spritecollideany(player1, box_group):
-            player1.rect.y += 5
-        player1.direction = 1
-    if pressed_keys[pygame.K_s]:
-        player1.rect.y += 5
-        if pygame.sprite.spritecollideany(player1, box_group):
-            player1.rect.y -= 5
-        player1.direction = 3
-    if pressed_keys[pygame.K_a]:
-        player1.rect.x -= 5
-        if pygame.sprite.spritecollideany(player1, box_group):
-            player1.rect.x += 5
-        player1.direction = 2
-    if pressed_keys[pygame.K_d]:
-        player1.rect.x += 5
-        if pygame.sprite.spritecollideany(player1, box_group):
-            player1.rect.x -= 5
-        player1.direction = 4
-    player.image = pygame.transform.rotate(player_image, 90 * player.direction)
-    player1.image = pygame.transform.rotate(player_image, 90 * player1.direction)
-    screen.fill((0, 0, 0))
-    tiles_group.draw(screen)
-    player_group.draw(screen)
-    shell_group.draw(screen)
-    clock.tick(FPS)
-    shell_group.update()
-    pygame.display.flip()
-    check_game_over = True
-    if player not in player_group and player1 not in player_group:
-        outro('Ничья')
-        check_game_over = False
-    elif player not in player_group:
-        outro('Победил первый игрок')
-        check_game_over = False
-    elif player1 not in player_group:
-        outro('Победил второй игрок')
-        check_game_over = False
-    if not check_game_over:
-        terminate()
+    tile_images = {
+        'wall': load_image('box.png'),
+        'empty': load_image('grass.png'),
+    }
+    player_image = load_image('tank.png')
+    player_image = pygame.transform.scale(player_image, (41, 41))
+    player_image = pygame.transform.rotate(player_image, 270)
+    bot_r_image = load_image('r_tank.png', -1)
+    bot_r_image = pygame.transform.scale(bot_r_image, (41, 41))
+    bot_r_image = pygame.transform.rotate(bot_r_image, 270)
+    bot_b_image = load_image('b_tank.png', -1)
+    bot_b_image = pygame.transform.scale(bot_b_image, (41, 41))
+    bot_b_image = pygame.transform.rotate(bot_b_image, 270)
+    shell_image = load_image('shell.png', -1)
+    shell_image = pygame.transform.scale(shell_image, (19, 15))
+    tile_width = tile_height = 50
 
-# Игровой цикл для 1 игрока
-while running_1player:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            terminate()
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_e:
-                player1.shoot('player')
-            if event.key == pygame.K_RSHIFT:
-                player.shoot('player1')
-    pressed_keys = pygame.key.get_pressed()
-    if pressed_keys[pygame.K_UP]:
-        player.rect.y -= 5
-        if pygame.sprite.spritecollideany(player, box_group):
-            player.rect.y += 5
-        player.direction = 1
-    if pressed_keys[pygame.K_DOWN]:
-        player.rect.y += 5
-        if pygame.sprite.spritecollideany(player, box_group):
+    start_screen()
+
+    all_sprites = pygame.sprite.Group()
+    tiles_group = pygame.sprite.Group()
+    player_group = pygame.sprite.Group()
+    box_group = pygame.sprite.Group()
+    shell_group = pygame.sprite.Group()
+    red_bots_group = pygame.sprite.Group()
+    blue_bots_group = pygame.sprite.Group()
+    player = None
+    player1 = None
+    pygame.display.set_caption('Танчики')
+
+    # Игровой цикл для 2 игроков
+    if running_2player:
+        player1, player = generate_level(load_level('level2.txt'))
+    while running_2player:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_e:
+                    player1.shoot('player')
+                if event.key == pygame.K_RSHIFT:
+                    player.shoot('player1')
+        pressed_keys = pygame.key.get_pressed()
+        if pressed_keys[pygame.K_UP]:
             player.rect.y -= 5
-        player.direction = 3
-    if pressed_keys[pygame.K_LEFT]:
-        player.rect.x -= 5
-        if pygame.sprite.spritecollideany(player, box_group):
-            player.rect.x += 5
-        player.direction = 2
-    if pressed_keys[pygame.K_RIGHT]:
-        player.rect.x += 5
-        if pygame.sprite.spritecollideany(player, box_group):
+            if pygame.sprite.spritecollideany(player, box_group):
+                player.rect.y += 5
+            player.direction = 1
+        if pressed_keys[pygame.K_DOWN]:
+            player.rect.y += 5
+            if pygame.sprite.spritecollideany(player, box_group):
+                player.rect.y -= 5
+            player.direction = 3
+        if pressed_keys[pygame.K_LEFT]:
             player.rect.x -= 5
-        player.direction = 4
-    if pressed_keys[pygame.K_w]:
-        player1.rect.y -= 5
-        if pygame.sprite.spritecollideany(player1, box_group):
-            player1.rect.y += 5
-        player1.direction = 1
-    if pressed_keys[pygame.K_s]:
-        player1.rect.y += 5
-        if pygame.sprite.spritecollideany(player1, box_group):
+            if pygame.sprite.spritecollideany(player, box_group):
+                player.rect.x += 5
+            player.direction = 2
+        if pressed_keys[pygame.K_RIGHT]:
+            player.rect.x += 5
+            if pygame.sprite.spritecollideany(player, box_group):
+                player.rect.x -= 5
+            player.direction = 4
+        if pressed_keys[pygame.K_w]:
             player1.rect.y -= 5
-        player1.direction = 3
-    if pressed_keys[pygame.K_a]:
-        player1.rect.x -= 5
-        if pygame.sprite.spritecollideany(player1, box_group):
-            player1.rect.x += 5
-        player1.direction = 2
-    if pressed_keys[pygame.K_d]:
-        player1.rect.x += 5
-        if pygame.sprite.spritecollideany(player1, box_group):
+            if pygame.sprite.spritecollideany(player1, box_group):
+                player1.rect.y += 5
+            player1.direction = 1
+        if pressed_keys[pygame.K_s]:
+            player1.rect.y += 5
+            if pygame.sprite.spritecollideany(player1, box_group):
+                player1.rect.y -= 5
+            player1.direction = 3
+        if pressed_keys[pygame.K_a]:
             player1.rect.x -= 5
-        player1.direction = 4
-    player.image = pygame.transform.rotate(player_image, 90 * player.direction)
-    player1.image = pygame.transform.rotate(player_image, 90 * player1.direction)
-    screen.fill((0, 0, 0))
-    tiles_group.draw(screen)
-    player_group.draw(screen)
-    shell_group.draw(screen)
-    clock.tick(FPS)
-    shell_group.update()
-    pygame.display.flip()
-    check_game_over = True
-    if player not in player_group and player1 not in player_group:
-        outro('Ничья')
-        check_game_over = False
-    elif player not in player_group:
-        outro('Победил первый игрок')
-        check_game_over = False
-    elif player1 not in player_group:
-        outro('Победил второй игрок')
-        check_game_over = False
-    if not check_game_over:
-        terminate()
+            if pygame.sprite.spritecollideany(player1, box_group):
+                player1.rect.x += 5
+            player1.direction = 2
+        if pressed_keys[pygame.K_d]:
+            player1.rect.x += 5
+            if pygame.sprite.spritecollideany(player1, box_group):
+                player1.rect.x -= 5
+            player1.direction = 4
+        player.image = pygame.transform.rotate(player_image, 90 * player.direction)
+        player1.image = pygame.transform.rotate(player_image, 90 * player1.direction)
+        screen.fill((0, 0, 0))
+        tiles_group.draw(screen)
+        player_group.draw(screen)
+        shell_group.draw(screen)
+        blue_bots_group.draw(screen)
+        red_bots_group.draw(screen)
+        clock.tick(FPS)
+        shell_group.update()
+        red_bots_group.update()
+        blue_bots_group.update()
+        pygame.display.flip()
+        check_game_over = True
+        if player not in player_group and player1 not in player_group:
+            outro('Ничья')
+            check_game_over = False
+        elif player not in player_group:
+            outro('Победил синий игрок')
+            check_game_over = False
+        elif player1 not in player_group:
+            outro('Победил красный игрок')
+            check_game_over = False
+        if not check_game_over:
+            check_game_over = True
+            running_2player = False
+
+    # Игровой цикл для 1 игрока
+    if running_1player:
+        player1, player = generate_level(load_level('level1.txt'))
+        player1.kill()
+    while running_1player:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RSHIFT:
+                    player.shoot('player1')
+        pressed_keys = pygame.key.get_pressed()
+        if pressed_keys[pygame.K_UP]:
+            player.rect.y -= 5
+            if pygame.sprite.spritecollideany(player, box_group):
+                player.rect.y += 5
+            player.direction = 1
+        if pressed_keys[pygame.K_DOWN]:
+            player.rect.y += 5
+            if pygame.sprite.spritecollideany(player, box_group):
+                player.rect.y -= 5
+            player.direction = 3
+        if pressed_keys[pygame.K_LEFT]:
+            player.rect.x -= 5
+            if pygame.sprite.spritecollideany(player, box_group):
+                player.rect.x += 5
+            player.direction = 2
+        if pressed_keys[pygame.K_RIGHT]:
+            player.rect.x += 5
+            if pygame.sprite.spritecollideany(player, box_group):
+                player.rect.x -= 5
+            player.direction = 4
+        player.image = pygame.transform.rotate(player_image, 90 * player.direction)
+        screen.fill((0, 0, 0))
+        tiles_group.draw(screen)
+        player_group.draw(screen)
+        shell_group.draw(screen)
+        blue_bots_group.draw(screen)
+        clock.tick(FPS)
+        shell_group.update()
+        blue_bots_group.update()
+        pygame.display.flip()
+        check_game_over = True
+        if player not in player_group and len(blue_bots_group) == 0:
+            outro('Ничья')
+            check_game_over = False
+        elif player not in player_group:
+            outro('Вы проиграли...')
+            check_game_over = False
+        elif len(blue_bots_group) == 0:
+            outro('Вы победили!')
+            check_game_over = False
+        if not check_game_over:
+            check_game_over = True
+            running_1player = False
