@@ -167,6 +167,7 @@ class Player(pygame.sprite.Sprite):
 
     def shoot(self, aim):
         Shell(self.rect.x, self.rect.y, self.direction, aim)
+        shot_sound.play()
 
 
 class RedBot(pygame.sprite.Sprite):
@@ -200,6 +201,7 @@ class RedBot(pygame.sprite.Sprite):
 
     def shoot(self):
         Shell(self.rect.x, self.rect.y, self.dir[2], 'player1')
+        shot_sound.play()
 
 
 class BlueBot(pygame.sprite.Sprite):
@@ -233,6 +235,7 @@ class BlueBot(pygame.sprite.Sprite):
 
     def shoot(self):
         Shell(self.rect.x, self.rect.y, self.dir[2], 'player')
+        shot_sound.play()
 
 
 # Класс пули
@@ -276,16 +279,19 @@ class Shell(pygame.sprite.Sprite):
                 if self.dir == 4:
                     screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
                 self.kill()
+                explosion_sound.play()
                 break
             if self.aim == 'player1' and pygame.sprite.collide_mask(self, player1):
                 screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
                 self.kill()
+                explosion_sound.play()
                 player1.rect.y = 5000
                 player1.kill()
                 break
             if self.aim == 'player' and pygame.sprite.collide_mask(self, player):
                 screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
                 self.kill()
+                explosion_sound.play()
                 player.rect.y = 5000
                 player.kill()
                 break
@@ -293,6 +299,7 @@ class Shell(pygame.sprite.Sprite):
                     pygame.sprite.collide_mask(self, blue_bots_group.sprites()[0]):
                 screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
                 self.kill()
+                explosion_sound.play()
                 blue_bots_group.sprites()[0].rect.y = 5000
                 blue_bots_group.sprites()[0].kill()
                 break
@@ -300,6 +307,7 @@ class Shell(pygame.sprite.Sprite):
                     pygame.sprite.collide_mask(self, blue_bots_group.sprites()[1]):
                 screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
                 self.kill()
+                explosion_sound.play()
                 blue_bots_group.sprites()[1].rect.y = 5000
                 blue_bots_group.sprites()[1].kill()
                 break
@@ -307,6 +315,7 @@ class Shell(pygame.sprite.Sprite):
                     pygame.sprite.collide_mask(self, blue_bots_group.sprites()[2]):
                 screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
                 self.kill()
+                explosion_sound.play()
                 blue_bots_group.sprites()[2].rect.y = 5000
                 blue_bots_group.sprites()[2].kill()
                 break
@@ -314,6 +323,7 @@ class Shell(pygame.sprite.Sprite):
                     pygame.sprite.collide_mask(self, blue_bots_group.sprites()[3]):
                 screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
                 self.kill()
+                explosion_sound.play()
                 blue_bots_group.sprites()[3].rect.y = 5000
                 blue_bots_group.sprites()[3].kill()
                 break
@@ -321,6 +331,7 @@ class Shell(pygame.sprite.Sprite):
                     pygame.sprite.collide_mask(self, blue_bots_group.sprites()[4]):
                 screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
                 self.kill()
+                explosion_sound.play()
                 blue_bots_group.sprites()[4].rect.y = 5000
                 blue_bots_group.sprites()[4].kill()
                 break
@@ -328,6 +339,7 @@ class Shell(pygame.sprite.Sprite):
                     pygame.sprite.collide_mask(self, red_bots_group.sprites()[0]):
                 screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
                 self.kill()
+                explosion_sound.play()
                 red_bots_group.sprites()[0].rect.y = 5000
                 red_bots_group.sprites()[0].kill()
                 break
@@ -335,6 +347,7 @@ class Shell(pygame.sprite.Sprite):
                     pygame.sprite.collide_mask(self, red_bots_group.sprites()[1]):
                 screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
                 self.kill()
+                explosion_sound.play()
                 red_bots_group.sprites()[1].rect.y = 5000
                 red_bots_group.sprites()[1].kill()
                 break
@@ -342,6 +355,7 @@ class Shell(pygame.sprite.Sprite):
                     pygame.sprite.collide_mask(self, red_bots_group.sprites()[2]):
                 screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
                 self.kill()
+                explosion_sound.play()
                 red_bots_group.sprites()[2].rect.y = 5000
                 red_bots_group.sprites()[2].kill()
                 break
@@ -349,12 +363,14 @@ class Shell(pygame.sprite.Sprite):
                     pygame.sprite.collide_mask(self, red_bots_group.sprites()[3]):
                 screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
                 self.kill()
+                explosion_sound.play()
                 red_bots_group.sprites()[3].rect.y = 5000
                 red_bots_group.sprites()[3].kill()
                 break
             if self.aim == 'player' and len(red_bots_group.sprites()) >= 5 and \
                     pygame.sprite.collide_mask(self, red_bots_group.sprites()[4]):
                 screen.blit(boom_image, (self.rect.x - 23, self.rect.y - 21))
+                explosion_sound.play()
                 self.kill()
                 red_bots_group.sprites()[4].rect.y = 5000
                 red_bots_group.sprites()[4].kill()
@@ -423,6 +439,9 @@ while True:
     running_2player = False
     running_1player = False
     clock = pygame.time.Clock()
+
+    shot_sound = pygame.mixer.Sound('data/tankovyiy-vyistrel.ogg')
+    explosion_sound = pygame.mixer.Sound('data/370b925a30aca01.ogg')
 
     tile_images = {
         'wall1': load_image('wall1.jpg'),
