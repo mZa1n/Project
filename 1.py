@@ -135,17 +135,21 @@ def outro(text):
 
 # Загрузка уровня
 def load_level(filename):
-    with open(filename, 'r', encoding='utf-8') as file:
+    with open(filename, 'r') as file:
         map_level = list(map(str.strip, file.readlines()))
         max_width = max(map(len, map_level))
-        return list(map(lambda x: x.ljust(max_width, '.'), map_level))
+        return map_level
 
 
 # Класс плитки
 class Tile(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__(tiles_group, all_sprites)
-        if tile_type == 'wall':
+        if tile_type == 'wall1' or tile_type == 'wall2' or tile_type == 'wall3' or \
+           tile_type == 'wall4' or tile_type == 'wall5' or tile_type == 'wall6' or \
+           tile_type == 'wall7' or tile_type == 'wall8' or tile_type == 'wall9' or \
+           tile_type == 'corner1' or tile_type == 'corner2' or tile_type == 'corner3' or \
+           tile_type == 'corner4' or tile_type == 'bush' or tile_type == 'cactus':
             self.add(box_group)
         self.image = tile_images[tile_type]
         self.rect = self.image.get_rect()
@@ -363,29 +367,57 @@ def generate_level(level):
     new_player1, x1, y1 = None, None, None
     for y in range(len(level)):
         for x in range(len(level[y])):
-            if level[y][x] == '.':
-                Tile('empty', x, y)
-            elif level[y][x] == '#':
-                Tile('wall', x, y)
-            elif level[y][x] == '@':
-                Tile('empty', x, y)
+            if level[y][x] == '@':
+                Tile('sand', x, y)
                 if new_player is not None:
                     new_player1 = Player(x, y)
                 else:
                     new_player = Player(x, y)
-            elif level[y][x] == 'r':
-                Tile('empty', x, y)
+            elif level[y][x] == 'p':
+                Tile('sand', x, y)
                 RedBot(x, y)
-            elif level[y][x] == 'b':
-                Tile('empty', x, y)
+            elif level[y][x] == 'l':
+                Tile('sand', x, y)
                 BlueBot(x, y)
+            elif level[y][x] == 'q':
+                Tile('wall1', x, y)
+            elif level[y][x] == 'w':
+                Tile('wall2', x, y)
+            elif level[y][x] == 'e':
+                Tile('wall3', x, y)
+            elif level[y][x] == 'r':
+                Tile('wall4', x, y)
+            elif level[y][x] == 't':
+                Tile('wall5', x, y)
+            elif level[y][x] == 'y':
+                Tile('wall6', x, y)
+            elif level[y][x] == 'u':
+                Tile('wall7', x, y)
+            elif level[y][x] == 'i':
+                Tile('wall8', x, y)
+            elif level[y][x] == 'o':
+                Tile('wall9', x, y)
+            elif level[y][x] == 'a':
+                Tile('corner1', x, y)
+            elif level[y][x] == 's':
+                Tile('corner2', x, y)
+            elif level[y][x] == 'd':
+                Tile('corner3', x, y)
+            elif level[y][x] == 'f':
+                Tile('corner4', x, y)
+            elif level[y][x] == 'c':
+                Tile('cactus', x, y)
+            elif level[y][x] == 'b':
+                Tile('bush', x, y)
+            elif level[y][x] == 'g':
+                Tile('sand', x, y)
     return new_player, new_player1
 
 
 # Запуск заставки и описание групп спрайтов
 while True:
     pygame.init()
-    size = width, height = 600, 700
+    size = width, height = 1200, 1000
     screen = pygame.display.set_mode(size)
     FPS = 12
     running_2player = False
@@ -393,8 +425,22 @@ while True:
     clock = pygame.time.Clock()
 
     tile_images = {
-        'wall': load_image('box.png'),
-        'empty': load_image('grass.png'),
+        'wall1': load_image('wall1.jpg'),
+        'wall2': load_image('wall2.jpg'),
+        'wall3': load_image('wall3.jpg'),
+        'wall4': load_image('wall4.jpg'),
+        'wall5': load_image('wall5.jpg'),
+        'wall6': load_image('wall6.jpg'),
+        'wall7': load_image('wall7.jpg'),
+        'wall8': load_image('wall8.jpg'),
+        'wall9': load_image('wall9.jpg'),
+        'corner1': load_image('corner1.jpg'),
+        'corner2': load_image('corner2.jpg'),
+        'corner3': load_image('corner3.jpg'),
+        'corner4': load_image('corner4.jpg'),
+        'cactus': load_image('cactus.jpg'),
+        'bush': load_image('bush.jpg'),
+        'sand': load_image('sand.jpg')
     }
     player_image = load_image('tank.png')
     player_image = pygame.transform.scale(player_image, (41, 41))
@@ -424,7 +470,7 @@ while True:
 
     # Игровой цикл для 2 игроков
     if running_2player:
-        player1, player = generate_level(load_level('level2.txt'))
+        player1, player = generate_level(load_level('level3.txt'))
     while running_2player:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -481,12 +527,12 @@ while True:
         tiles_group.draw(screen)
         player_group.draw(screen)
         shell_group.draw(screen)
-        blue_bots_group.draw(screen)
-        red_bots_group.draw(screen)
+        # blue_bots_group.draw(screen)
+        # red_bots_group.draw(screen)
         clock.tick(FPS)
         shell_group.update()
-        red_bots_group.update()
-        blue_bots_group.update()
+        # red_bots_group.update()
+        # blue_bots_group.update()
         pygame.display.flip()
         check_game_over = True
         if player not in player_group and player1 not in player_group:
@@ -504,7 +550,7 @@ while True:
 
     # Игровой цикл для 1 игрока
     if running_1player:
-        player1, player = generate_level(load_level('level1.txt'))
+        player1, player = generate_level(load_level('level3.txt'))
         player1.kill()
     while running_1player:
         for event in pygame.event.get():
