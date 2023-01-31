@@ -433,7 +433,7 @@ def generate_level(level):
 # Запуск заставки и описание групп спрайтов
 while True:
     pygame.init()
-    size = width, height = 1200, 1000
+    size = width, height = 1100, 1000
     screen = pygame.display.set_mode(size)
     FPS = 12
     running_2player = False
