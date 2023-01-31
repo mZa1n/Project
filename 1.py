@@ -23,6 +23,8 @@ def load_image(name, colorkey=None):
         image = image.convert()
         if colorkey == -1:
             colorkey = image.get_at((0, 0))
+        elif colorkey == -2:
+            colorkey = (183, 185, 182)
         image.set_colorkey(colorkey)
     return image
 
@@ -396,32 +398,49 @@ def generate_level(level):
                 Tile('sand', x, y)
                 BlueBot(x, y)
             elif level[y][x] == 'q':
-                Tile('wall1', x, y)
+                Tile('sand', x, y)
+                Tile('wall1', x + 0.5, y + 0.5)
             elif level[y][x] == 'w':
-                Tile('wall2', x, y)
+                Tile('sand', x, y)
+                Tile('wall2', x + 0.5, y)
             elif level[y][x] == 'e':
-                Tile('wall3', x, y)
+                Tile('sand', x, y)
+                Tile('wall3', x + 0.5, y)
             elif level[y][x] == 'r':
+                Tile('sand', x, y)
                 Tile('wall4', x, y)
             elif level[y][x] == 't':
                 Tile('wall5', x, y)
             elif level[y][x] == 'y':
-                Tile('wall6', x, y)
+                Tile('sand', x, y)
+                Tile('wall6', x, y + 0.5)
             elif level[y][x] == 'u':
-                Tile('wall7', x, y)
+                Tile('sand', x, y)
+                Tile('wall7', x, y + 0.5)
             elif level[y][x] == 'i':
+                Tile('sand', x, y)
                 Tile('wall8', x, y)
             elif level[y][x] == 'o':
+                Tile('sand', x, y)
                 Tile('wall9', x, y)
             elif level[y][x] == 'a':
-                Tile('corner1', x, y)
+                Tile('sand', x, y)
+                Tile('wall4', x, y)
+                Tile('wall7', x, y + 0.5)
             elif level[y][x] == 's':
-                Tile('corner2', x, y)
+                Tile('sand', x, y)
+                Tile('wall6', x, y + 0.5)
+                Tile('wall9', x, y)
             elif level[y][x] == 'd':
-                Tile('corner3', x, y)
+                Tile('sand', x, y)
+                Tile('wall1', x + 0.5, y + 0.5)
+                Tile('wall4', x, y)
             elif level[y][x] == 'f':
-                Tile('corner4', x, y)
+                Tile('sand', x, y)
+                Tile('wall3', x + 0.5, y)
+                Tile('wall6', x, y + 0.5)
             elif level[y][x] == 'c':
+                Tile('sand', x, y)
                 Tile('cactus', x, y)
             elif level[y][x] == 'b':
                 Tile('bush', x, y)
@@ -456,7 +475,7 @@ while True:
         'corner1': load_image('corner1.jpg'),
         'corner2': load_image('corner2.jpg'),
         'corner3': load_image('corner3.jpg'),
-        'corner4': load_image('corner4.jpg'),
+        'corner4': load_image('corner4.jpg', -2),
         'cactus': load_image('cactus.jpg'),
         'bush': load_image('bush.jpg'),
         'sand': load_image('sand.jpg')
