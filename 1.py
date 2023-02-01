@@ -8,9 +8,9 @@ from pygame_gui.elements import UIButton
 # ------------------------------------Бибилиотеки---------------------------------------------------
 
 # --------------------------------Основная часть кода-----------------------------------------------
+
+
 # Загрузка изображения
-
-
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     if not os.path.isfile(fullname):
@@ -93,6 +93,7 @@ def start_screen():
         clock.tick(FPS)
 
 
+# Руководство по использованию
 def instruction():
     screen.fill((0, 0, 0))
     pygame.display.set_caption('Инструкция')
@@ -107,8 +108,8 @@ def instruction():
     screen.blit(fon, (0, 300))
     font = pygame.font.Font(None, 30)
     text_coord = 50
-    manager = pygame_gui.UIManager((600, 600))
-    button_layout_rect_close = pygame.Rect(450, 350, 150, 40)
+    manager = pygame_gui.UIManager((1200, 1200))
+    button_layout_rect_close = pygame.Rect(600, 400, 150, 40)
     button_close = UIButton(relative_rect=button_layout_rect_close,
                             text='Exit',
                             manager=manager
@@ -161,7 +162,7 @@ def outro(text):
     screen_out = pygame.display.set_mode(size)
     pygame.display.set_caption('Конец игры')
     screen_out.fill((0, 0, 0))
-    rules = ['Конец игры', "", text, '...',
+    rules = ['Конец игры', "", text, 'Для продолжения нажмите любую кнопку',
              '...']
     fon = pygame.transform.scale(load_image('fon.jpg'), (600, 350))
     screen_out.blit(fon, (0, 300))
@@ -219,11 +220,13 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect = self.rect.move(tile_width * pos_x + 5, tile_height * pos_y + 5)
 
+    # Функция, отвечающая за выстрел игрока
     def shoot(self, aim):
         Shell(self.rect.x, self.rect.y, self.direction, aim)
         shot_sound.play()
 
 
+# Класс красных ботов
 class RedBot(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(red_bots_group, all_sprites)
@@ -234,6 +237,7 @@ class RedBot(pygame.sprite.Sprite):
         self.k = 0
         self.rel = random.randint(25, 41)
 
+    # Функция, отвечающая за перемещение бота
     def update(self):
         self.k += 1
         for i in range(5):
@@ -253,11 +257,13 @@ class RedBot(pygame.sprite.Sprite):
             self.k = 0
             self.shoot()
 
+    # Функция, отвечающая за выстрел бота
     def shoot(self):
         Shell(self.rect.x, self.rect.y, self.dir[2], 'player1')
         shot_sound.play()
 
 
+# Класс синих ботов
 class BlueBot(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(blue_bots_group, all_sprites)
@@ -268,6 +274,7 @@ class BlueBot(pygame.sprite.Sprite):
         self.k = 0
         self.rel = random.randint(25, 41)
 
+    # Функция, отвечающая за перемещение бота
     def update(self):
         self.k += 1
         for i in range(5):
@@ -287,6 +294,7 @@ class BlueBot(pygame.sprite.Sprite):
             self.k = 0
             self.shoot()
 
+    # Функция, отвечающая за выстрел бота
     def shoot(self):
         Shell(self.rect.x, self.rect.y, self.dir[2], 'player')
         shot_sound.play()
@@ -311,6 +319,7 @@ class Shell(pygame.sprite.Sprite):
         if self.dir == 4:
             self.rect = self.rect.move(x + 33, y + 14)
 
+    # Функция, отвечающая за перемещение пули
     def update(self):
         for i in range(15):
             if self.dir == 1:
