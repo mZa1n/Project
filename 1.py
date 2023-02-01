@@ -37,6 +37,7 @@ def terminate():
 
 # Начало игры
 def start_screen():
+    screen.fill((0, 0, 0))
     pygame.display.set_caption('Стартовое окно')
     rules = ['Правила игры', "Стреляй, громи, кроши", "Цель: убить противника",
              'Кнопка "Start 2 player"',
@@ -50,6 +51,7 @@ def start_screen():
     manager = pygame_gui.UIManager((600, 600))
     button_layout_rect_start_2player = pygame.Rect(280, 150, 150, 40)
     button_layout_rect_rules = pygame.Rect(280, 200, 150, 40)
+    button_layout_rect_instruction = pygame.Rect(280, 250, 150, 40)
     button_start_2player = UIButton(relative_rect=button_layout_rect_start_2player,
                                     text='Start 2 player',
                                     manager=manager
@@ -58,6 +60,9 @@ def start_screen():
                                     text='Start 1 player',
                                     manager=manager
                                     )
+    button_instruction = UIButton(relative_rect=button_layout_rect_instruction,
+                                  text='Instruction',
+                                  manager=manager)
     for line in rules:
         line_rendered = font.render(line, 1, pygame.Color('white'))
         line_rect = line_rendered.get_rect()
@@ -77,6 +82,53 @@ def start_screen():
                     return
                 if event.ui_element == button_start_1player:
                     running_1player = True
+                    return
+                if event.ui_element == button_instruction:
+                    instruction()
+                    return
+            manager.process_events(event)
+        manager.update(FPS)
+        manager.draw_ui(screen)
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
+def instruction():
+    screen.fill((0, 0, 0))
+    pygame.display.set_caption('Инструкция')
+    rules = ['Управление:', 'Первый игрок управляет танком на "wasd" и производит выстрел на "e"',
+             'Второй игрок управляет танком на стрелочки и производит выстрел на правый шифт',
+             'Нажав на кнопку "Start 2 player", вы начнете игру со своим другом',
+             'Нажав на кнопку "Start 1 player", вы начнете игру с ботами',
+             'Ваша команда синих, команда противников красная',
+             'Ваша задача убить всех врагов',
+             'После победы или поражение, вам следует нажать любую клавишу мыши для продолжения']
+    fon = pygame.transform.scale(load_image('fon.jpg'), (600, 350))
+    screen.blit(fon, (0, 300))
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    manager = pygame_gui.UIManager((600, 600))
+    button_layout_rect_close = pygame.Rect(450, 350, 150, 40)
+    button_close = UIButton(relative_rect=button_layout_rect_close,
+                            text='Exit',
+                            manager=manager
+                            )
+    for line in rules:
+        line_rendered = font.render(line, 1, pygame.Color('white'))
+        line_rect = line_rendered.get_rect()
+        text_coord += 5
+        line_rect.top = text_coord - 10
+        line_rect.x = 10
+        text_coord += line_rect.height + 10
+        screen.blit(line_rendered, line_rect)
+    while True:
+        global running_1player, running_2player
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == pygame_gui.UI_BUTTON_PRESSED:
+                if event.ui_element == button_close:
+                    start_screen()
                     return
             manager.process_events(event)
         manager.update(FPS)
@@ -480,13 +532,13 @@ while True:
         'bush': load_image('bush.jpg'),
         'sand': load_image('sand.jpg')
     }
-    player_image = load_image('tank.png')
+    player_image = load_image('player1.png', -1)
     player_image = pygame.transform.scale(player_image, (41, 41))
-    player_image = pygame.transform.rotate(player_image, 270)
-    bot_r_image = load_image('r_tank.png', -1)
+    player_image = pygame.transform.rotate(player_image, 90)
+    bot_r_image = load_image('red_bot1.png', -1)
     bot_r_image = pygame.transform.scale(bot_r_image, (41, 41))
     bot_r_image = pygame.transform.rotate(bot_r_image, 270)
-    bot_b_image = load_image('b_tank.png', -1)
+    bot_b_image = load_image('blue_bot1.png', -1)
     bot_b_image = pygame.transform.scale(bot_b_image, (41, 41))
     bot_b_image = pygame.transform.rotate(bot_b_image, 270)
     shell_image = load_image('shell.png', -1)
@@ -588,7 +640,7 @@ while True:
 
     # Игровой цикл для 1 игрока
     if running_1player:
-        player1, player = generate_level(load_level('level3.txt'))
+        player1, player = generate_level(load_level('level3_bots.txt'))
         player1.kill()
     while running_1player:
         for event in pygame.event.get():
