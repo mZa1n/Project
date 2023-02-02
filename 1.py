@@ -44,7 +44,7 @@ def start_screen():
              'Отвечает за игру вдвоём',
              'Кнопка "Start 1 player"',
              'Отвечает за игру с ботом']
-    fon = pygame.transform.scale(load_image('fon.jpg'), (600, 350))
+    fon = pygame.transform.scale(load_image('fon.jpg'), (1100, 610))
     screen.blit(fon, (0, 300))
     font = pygame.font.Font(None, 30)
     text_coord = 50
