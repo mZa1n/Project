@@ -72,16 +72,18 @@ def start_screen():
         text_coord += line_rect.height + 10
         screen.blit(line_rendered, line_rect)
     while True:
-        global running_1player, running_2player
+        global choose_1player, choose_2player
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
             if event.type == pygame_gui.UI_BUTTON_PRESSED:
                 if event.ui_element == button_start_2player:
-                    running_2player = True
+                    choose_2player = True
+                    choose_difficult()
                     return
                 if event.ui_element == button_start_1player:
-                    running_1player = True
+                    choose_1player = True
+                    choose_difficult()
                     return
                 if event.ui_element == button_instruction:
                     instruction()
@@ -91,6 +93,111 @@ def start_screen():
         manager.draw_ui(screen)
         pygame.display.flip()
         clock.tick(FPS)
+
+
+def choose_difficult():
+    global choose_1player, choose_2player, running_2player, running_1player, player, player1
+    screen.fill((0, 0, 0))
+    pygame.display.set_caption('Выбор сложности')
+    rules = ['Выберите сложность',
+             'Easy difficult - на карте 2 бота',
+             'Medium difficuilt - на карте 3 бота',
+             'Hard difficult - на карте 5 ботов']
+    fon = pygame.transform.scale(load_image('fon.jpg'), (1100, 610))
+    screen.blit(fon, (0, 300))
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    manager = pygame_gui.UIManager((600, 600))
+    button_layout_rect_start_2player = pygame.Rect(280, 200, 150, 40)
+    button_layout_rect_rules = pygame.Rect(280, 250, 150, 40)
+    button_layout_rect_instruction = pygame.Rect(280, 300, 150, 40)
+    button_layout_rect_back = pygame.Rect(280, 350, 150, 40)
+    button_easy_difficult = UIButton(relative_rect=button_layout_rect_start_2player,
+                                    text='Easy difficult',
+                                    manager=manager
+                                    )
+    button_medium_difficult = UIButton(relative_rect=button_layout_rect_rules,
+                                    text='Medium difficult',
+                                    manager=manager
+                                    )
+    button_hard_difficult = UIButton(relative_rect=button_layout_rect_instruction,
+                                  text='Hard difficult',
+                                  manager=manager)
+    button_back = UIButton(relative_rect=button_layout_rect_back,
+                           text='Back',
+                           manager=manager)
+    for line in rules:
+        line_rendered = font.render(line, 1, pygame.Color('white'))
+        line_rect = line_rendered.get_rect()
+        text_coord += 5
+        line_rect.top = text_coord - 10
+        line_rect.x = 10
+        text_coord += line_rect.height + 10
+        screen.blit(line_rendered, line_rect)
+
+    if choose_2player:
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                if event.type == pygame_gui.UI_BUTTON_PRESSED:
+                    if event.ui_element == button_easy_difficult:
+                        player1, player = generate_level(load_level('level3_easy.txt'))
+                        running_2player = True
+                        return
+                    if event.ui_element == button_medium_difficult:
+                        player1, player = generate_level(load_level('level3_medium.txt'))
+                        running_2player = True
+                        return
+                    if event.ui_element == button_hard_difficult:
+                        player1, player = generate_level(load_level('level3_hard.txt'))
+                        running_2player = True
+                        return
+                    if event.ui_element == button_back:
+                        running_2player = False
+                        player, player1 = None, None
+                        choose_1player = False
+                        choose_2player = False
+                        start_screen()
+                        return
+                manager.process_events(event)
+            manager.update(FPS)
+            manager.draw_ui(screen)
+            pygame.display.flip()
+            clock.tick(FPS)
+    else:
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                if event.type == pygame_gui.UI_BUTTON_PRESSED:
+                    if event.ui_element == button_easy_difficult:
+                        player1, player = generate_level(load_level('level3_easy.txt'))
+                        player1.kill()
+                        running_1player = True
+                        return
+                    if event.ui_element == button_medium_difficult:
+                        player1, player = generate_level(load_level('level3_medium.txt'))
+                        player1.kill()
+                        running_1player = True
+                        return
+                    if event.ui_element == button_hard_difficult:
+                        player1, player = generate_level(load_level('level3_hard.txt'))
+                        player1.kill()
+                        running_1player = True
+                        return
+                    if event.ui_element == button_back:
+                        running_1player = False
+                        player, player1 = None, None
+                        choose_1player = False
+                        choose_2player = False
+                        start_screen()
+                        return
+                manager.process_events(event)
+            manager.update(FPS)
+            manager.draw_ui(screen)
+            pygame.display.flip()
+            clock.tick(FPS)
 
 
 # Руководство по использованию
@@ -518,6 +625,8 @@ while True:
     FPS = 12
     running_2player = False
     running_1player = False
+    choose_2player = False
+    choose_1player = False
     clock = pygame.time.Clock()
 
     shot_sound = pygame.mixer.Sound('data/tankovyiy-vyistrel.ogg')
@@ -554,8 +663,6 @@ while True:
     shell_image = pygame.transform.scale(shell_image, (19, 15))
     tile_width = tile_height = 50
 
-    start_screen()
-
     all_sprites = pygame.sprite.Group()
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
@@ -566,10 +673,9 @@ while True:
     player = None
     player1 = None
     pygame.display.set_caption('Танчики')
+    start_screen()
 
     # Игровой цикл для 2 игроков
-    if running_2player:
-        player1, player = generate_level(load_level('level3.txt'))
     while running_2player:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -648,9 +754,6 @@ while True:
             running_2player = False
 
     # Игровой цикл для 1 игрока
-    if running_1player:
-        player1, player = generate_level(load_level('level3_bots.txt'))
-        player1.kill()
     while running_1player:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
