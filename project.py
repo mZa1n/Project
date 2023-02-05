@@ -186,7 +186,7 @@ def instruction():
 
 # Конец игры
 def outro(text, players_number):
-    con = sqlite3.connect('match_results.db')
+    con = sqlite3.connect('data/match_results.db')
     cur = con.cursor()
     screen.fill((0, 0, 0))
     for el in all_sprites:
@@ -877,7 +877,7 @@ def generate_level(level):
 
 
 # Запуск заставки и описание групп спрайтов
-con = sqlite3.connect('match_results.db')
+con = sqlite3.connect('data/match_results.db')
 cur = con.cursor()
 result = cur.execute('''UPDATE results SET blue_this_game = 0 WHERE id = 1''').fetchall()
 result = cur.execute('''UPDATE results SET red_this_game = 0 WHERE id = 1''').fetchall()
@@ -964,7 +964,7 @@ while True:
         player1, player = generate_level(load_level('level3.txt'))
         for i in range(num_of_mines):
             Mine(coords_for_mines[i][0], coords_for_mines[i][1])
-        damage_boost_coords = random.choice([(10, 10), (11, 10), (12, 9), (12, 10), (12, 8)])
+        damage_boost_coords = random.choice([(10, 10), (11, 10), (12, 9), (12, 10), (12, 7)])
         speed_boost_coords = random.choice([(8, 8), (10, 8), (11, 9), (10, 8), (12, 8)])
         DamageBoost(damage_boost_coords[0], damage_boost_coords[1])
         SpeedBoost(speed_boost_coords[0], speed_boost_coords[1])
